@@ -2,6 +2,7 @@ const multer = require('multer')
 const express = require('express')
 const uRouter = express.Router()
 const path = require('path')
+const fs = require('fs')
 
 const UsersController = require('../controllers/UsersController')
 
