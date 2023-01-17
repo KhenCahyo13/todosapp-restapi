@@ -20,7 +20,11 @@ const UsersController = {
             } else {
                 const query = 'INSERT INTO users (fullname, email, password, picture, url_picture) VALUES (?, ?, ?, ?, ?)'
                 const [result] = await Database.query(query, [fullname, email, hashedPassword, picture, pictureURL])
-                response.status(201).json({ msg: "Registration successfully" })
+                const addAnn = new Announcement({
+                    fullname, email, password, picture, url_picture: request.users.id
+                })
+                const saveAnn = await addAnn.save()
+                response.status(201).json({ saveAnn, msg: "Registration successfully" })
             }
         } catch (error) {
             console.log(error)
