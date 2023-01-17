@@ -6,7 +6,9 @@ const path = require('path')
 const UsersController = require('../controllers/UsersController')
 
 const storage = multer.diskStorage({
-    destination: './src/profil_image',
+    destination: (request, file, cb) => {
+        cb(null, './src/profil_image')
+    },
     filename: (request, file, cb) => {
         return cb(null, `${file.fieldname}_${Date.now()}${path.extname(file.originalname)}`)
     }
