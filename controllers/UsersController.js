@@ -6,7 +6,7 @@ const UsersController = {
         try {
             // Get Request Value
             const { fullname, email, password, confPassword } = request.body
-            const picture = request.file.filename
+            const picture = request.file
             // Create URL Picture
             let pictureURL = request.protocol + "://" + request.get("host") + "/profil_image/" + request.file.filename
 
