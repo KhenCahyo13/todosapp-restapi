@@ -2,17 +2,11 @@ const express = require('express')
 const app = express()
 const path = require('path')
 const cors = require('cors')
-const bodyParser = require('body-parse')
+const bodyParser = require('body-parser')
 
 require('dotenv').config()
 
-const corsOptions = {
-    origin: 'http://localhost:3000',
-    credentials:true,
-    optionSuccessStatus:200
-}
-
-app.use(cors(corsOptions))
+app.use(cors())
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, "src")))
