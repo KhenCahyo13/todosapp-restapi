@@ -41,24 +41,21 @@ const UsersController = {
           subject: 'Todo App -Email Verification',
           html: `<h2>Hi ${fullname}, thanks for registering in Todo App</h2>
                  <h4>Please verify your email to continue in app</h4>
-                 <a href="https://${request.headers.host}/todoapp/users/${verification_token}">Verify your email in here</a>
+                 <a href="https://todoapp-khencahyo13.vercel.app/todoapp/users/${verification_token}">Verify your email in here</a>
           `
         }
 
         // Send Email
         transporter.sendMail(mailOptions, (error, info) => {
           if (error) {
-            console.log(error)
+            response.status(500).json({ msg: "Email verification failed to send" })
           } else {
             response.status(201).json({ msg: "Verification email is send to your gmail account" })
           }
         })
-
-        // response.status(201).json({ msg: "Registration successfully" })
       }
     } catch (error) {
-      console.log(error)
-      response.status(400).json({ msg: error })
+      response.status(400).json({ msg: "The email you entered is already registered" })
     }
   },
 
@@ -76,14 +73,26 @@ const UsersController = {
     }
   },
 
+  updatePicture: async (request, response) => {
+    try {
+      const { id_user } = request.params
+      const picture = request.file.filename
+      let pictureURL = request.protocol + "://" + request.get("host") + "/profil_image/" + request.file.filename
+
+      const query = "UPDATE users SET picture = ?, url_picture = ? WHERE id_user = ?"
+      const [results] = await Database.query(query, [picture, pictureURL, id_user])
+      response.status(200).json({ msg: "Picture update successfully" })
+    } catch (error) {
+      console.log(error)
+      response.status(400).json({ msg: error })
+    }
+  },
+
   updateUser: async (request, response) => {
     try {
       // Get Request Value
       const { fullname, email, password, confPassword } = request.body
       const { id_user } = request.params
-      const picture = request.file.filename
-      // Create URL Picture
-      let pictureURL = request.protocol + "://" + request.get("host") + "/profil_image/" + request.file.filename
 
       // Encrypt Password
       const saltRounds = 10;
@@ -93,8 +102,8 @@ const UsersController = {
       if (password !== confPassword) {
         response.status(400).json({ msg: "Password and Password Confirmation must be the same" })
       } else {
-        const query = 'UPDATE users SET fullname = ?, email = ?, password = ?, picture = ?, url_picture = ? WHERE id_user = ?'
-        const [result] = await Database.query(query, [fullname, email, hashedPassword, picture, pictureURL, id_user])
+        const query = 'UPDATE users SET fullname = ?, email = ?, password = ? WHERE id_user = ?'
+        const [result] = await Database.query(query, [fullname, email, hashedPassword, id_user])
         response.status(201).json({ msg: "Data successfully updated" })
       }
     } catch (error) {
@@ -121,6 +130,76 @@ const UsersController = {
     } catch (error) {
       console.log(error)
       response.status(400).json({ msg: error })
+    }
+  },
+
+  loginUser: async (request, response, next) => {
+    try {
+      const { email } = request.body
+      const [results] = await Database.query("SELECT * FROM users WHERE email = ?", [email])
+      if (results.length > 0) {
+        if (results[0].is_verified === 1) {
+          const password = request.body.password
+          const compare = bcrypt.compareSync(password, results[0].password)
+          if (compare) {
+            response.status(200).json({ msg: "Login successfully", data: results })
+          } else {
+            response.status(400).json({ msg: "Invalid password" })
+          }
+        } else {
+          response.status(400).json({ msg: "Your email is not verified, pliss verified your email to continue" })
+        }
+      } else {
+        response.status(404).json({ msg: "Email not found" })
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  },
+
+  deleteUser: async (request, response) => {
+    try {
+      const { id_user } = request.params
+      const query = "DELETE FROM users WHERE id_user = ?"
+      const [results] = await Database.query(query, [id_user])
+      response.status(200).json({ msg: "Account succecssfully deleted" })
+    } catch (error) {
+      console.log(error)
+    }
+  },
+
+  forgotPassword: async (request, response) => {
+    try {
+      const { email } = request.body
+      const query = "SELECT * FROM users WHERE email = ?"
+      const [results] = await Database.query(query, [email])
+      if(results.length > 0) {
+        response.status(200).json({ data: results })
+      } else {
+        response.status(400).json({ msg: "Email is not found in server" })
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  },
+
+  resetPassword: async (request, response) => {
+    try {
+      const { id_user } = request.params
+      const { password, confPassword } = request.body
+
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(password, saltRounds)
+      
+      if(password !== confPassword) {
+        response.status(400).json({ msg: "Password and Password Confirmation must be the same" })
+      } else {
+        const query = "UPDATE users SET password = ? WHERE id_user = ?"
+        const [results] = await Database.query(query, [hashedPassword, id_user])
+        response.status(201).json({ msg: "Password change successfully" })
+      }
+    } catch (error) {
+      console.log(error)
     }
   }
 }

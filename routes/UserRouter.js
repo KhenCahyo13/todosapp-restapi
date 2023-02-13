@@ -16,21 +16,17 @@ const storage = multer.diskStorage({
 })
 
 const upload = multer({
-  storage: storage,
-  fileFilter: (request, file, cb) => {
-    if (file.mimetype == 'image/jpeg' || file.mimetype == 'image/jpg' || file.mimetype == 'image/png') {
-      cb(null, true)
-    } else {
-      cb(null, false)
-      return cb(new Error('File image only jpeg, jpg, and png'))
-    }
-  }
+  storage: storage
 })
 
 uRouter.post('/', upload.single('picture'), UsersController.createUser)
+uRouter.post('/login', UsersController.loginUser)
+uRouter.post('/forgotpassword', UsersController.forgotPassword)
 uRouter.get('/', UsersController.getAllUser)
 uRouter.get('/:id', UsersController.getUserById)
 uRouter.put('/:token', UsersController.verifyEmail)
-uRouter.put('/:id_user', upload.single('picture'), UsersController.updateUser)
-
+uRouter.put('/update/:id_user', UsersController.updateUser)
+uRouter.put('/picture/:id_user', upload.single('picture'), UsersController.updatePicture)
+uRouter.put('/resetpassword/:id_user', UsersController.resetPassword)
+uRouter.delete('/delete/:id_user', UsersController.deleteUser)
 module.exports = uRouter

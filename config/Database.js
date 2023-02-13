@@ -13,7 +13,7 @@ Database.getConnection((error, connection) => {
     if(error) {
         console.log(error)
     } else {
-        console.log("Database berhasil terhubung")
+        console.log("Database connected successfully")
     }
 })
 
